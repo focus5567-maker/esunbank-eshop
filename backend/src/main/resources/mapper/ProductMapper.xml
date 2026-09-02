@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+    商品資料存取 SQL 對應檔（資料層）。
+    namespace 對應 ProductMapper.java 的完整類別名稱，
+    MyBatis 透過 namespace + statement id 找到對應的 Mapper 方法。
+-->
+<mapper namespace="com.esun.eshop.mapper.ProductMapper">
+
+    <!--
+        對應 findAvailableProducts() / findById()：
+        將查詢結果欄位對應到 ProductRow 的屬性。
+        這裡明確使用 resultMap，讓欄位與 Java 屬性的對應關係清楚可見。
+    -->
+    <resultMap id="productResultMap" type="com.esun.eshop.mapper.ProductMapper$ProductRow">
+        <result column="product_id"   property="productId"/>
+        <result column="product_name" property="productName"/>
+        <result column="price"        property="price"/>
+        <result column="quantity"     property="quantity"/>
+    </resultMap>
+
+    <!--
+        新增商品，呼叫 sp_add_product PROCEDURE。
+        statementType="CALLABLE" 表示使用 JDBC CallableStatement 呼叫預存程序。
+        #{...} 使用參數綁定，避免字串拼接造成 SQL Injection。
+    -->
+    <insert id="insertProduct" statementType="CALLABLE">
+        CALL sp_add_product(
+            #{productId,   mode=IN, jdbcType=VARCHAR},
+            #{productName, mode=IN, jdbcType=VARCHAR},
+            #{price,       mode=IN, jdbcType=NUMERIC},
+            #{quantity,    mode=IN, jdbcType=INTEGER}
+        )
+    </insert>
+
+    <!--
+        查詢庫存 > 0 的商品清單。
+        sp_get_available_products() 是 RETURNS TABLE 的 FUNCTION，
+        因此可以直接使用 SELECT 查詢，不需要 statementType="CALLABLE"。
+    -->
+    <select id="findAvailableProducts" resultMap="productResultMap">
+        SELECT product_id, product_name, price, quantity
+        FROM sp_get_available_products()
+    </select>
+
+    <!--
+        依商品編號查詢單一商品。
+        sp_get_product_by_id() 是 RETURNS TABLE 的 FUNCTION，
+        使用 SELECT 直接呼叫，#{productId} 使用參數綁定。
+    -->
+    <select id="findById" resultMap="productResultMap">
+        SELECT product_id, product_name, price, quantity
+        FROM sp_get_product_by_id(#{productId})
+    </select>
+
+</mapper>
