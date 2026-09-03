@@ -6,8 +6,8 @@ spring:
     name: esunbank-eshop-backend
   datasource:
     url: jdbc:postgresql://localhost:5432/esunbank_eshop
-    username: postgres
-    password: qaz159
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
 mybatis:
