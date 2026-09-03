@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+    訂單資料存取 SQL 對應檔（資料層）。
+    namespace 對應 OrderMapper.java 的完整路徑。
+-->
+<mapper namespace="com.esun.eshop.mapper.OrderMapper">
+
+    <!--
+        新增訂單主檔，呼叫 sp_insert_order。
+        使用 statementType="CALLABLE" 呼叫 Stored Procedure，
+        並透過 #{...} 進行參數綁定，避免 SQL Injection。
+    -->
+    <insert id="insertOrder" statementType="CALLABLE">
+        CALL sp_insert_order(
+            #{orderId,    mode=IN, jdbcType=VARCHAR},
+            #{memberId,   mode=IN, jdbcType=VARCHAR},
+            #{totalPrice, mode=IN, jdbcType=NUMERIC},
+            #{payStatus,  mode=IN, jdbcType=SMALLINT}
+        )
+    </insert>
+
+    <!--
+        新增訂單明細，呼叫 sp_insert_order_detail。
+        同樣使用 statementType="CALLABLE" 搭配 #{...} 參數綁定。
+    -->
+    <insert id="insertOrderDetail" statementType="CALLABLE">
+        CALL sp_insert_order_detail(
+            #{orderId,    mode=IN, jdbcType=VARCHAR},
+            #{productId,  mode=IN, jdbcType=VARCHAR},
+            #{quantity,   mode=IN, jdbcType=INTEGER},
+            #{standPrice, mode=IN, jdbcType=NUMERIC},
+            #{itemPrice,  mode=IN, jdbcType=NUMERIC}
+        )
+    </insert>
+
+    <!--
+        扣減商品庫存，呼叫 sp_update_product_stock。
+        若 SP 因庫存不足觸發 RAISE EXCEPTION，
+        例外會向外拋出；若此流程由 @Transactional 管理，
+        Spring 會回滾整個交易，避免訂單主檔、明細與庫存只完成部分操作。
+    -->
+    <update id="updateProductStock" statementType="CALLABLE">
+        CALL sp_update_product_stock(
+            #{productId, mode=IN, jdbcType=VARCHAR},
+            #{quantity,  mode=IN, jdbcType=INTEGER}
+        )
+    </update>
+
+</mapper>

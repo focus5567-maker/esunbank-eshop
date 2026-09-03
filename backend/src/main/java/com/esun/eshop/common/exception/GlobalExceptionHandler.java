@@ -2,6 +2,8 @@ package com.esun.eshop.common.exception;
 
 import com.esun.eshop.common.response.ApiResponse;
 import jakarta.validation.ConstraintViolationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -23,6 +25,8 @@ import java.util.stream.Collectors;
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     /** 業務邏輯例外（例如庫存不足、商品不存在）→ 400 Bad Request */
     @ExceptionHandler(BusinessException.class)
@@ -51,11 +55,13 @@ public class GlobalExceptionHandler {
     /**
      * 兜底：以上三種以外的所有例外都會落到這裡，包含 MyBatis 呼叫 Stored Procedure
      * 時（例如庫存不足 RAISE EXCEPTION）被 Spring 轉換過的資料庫例外 → 500 Internal Server Error。
-     * 刻意不回傳 ex.getMessage()，避免系統內部細節外洩給前端。
+     * 回給前端的訊息刻意不含細節，但透過 log.error 把完整例外記錄在伺服器端，
+     * 方便開發階段除錯，同時不會讓內部錯誤資訊外洩給前端使用者。
      */
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ApiResponse<Void> handleUnexpectedException(Exception ex) {
+        log.error("系統發生未預期錯誤", ex);
         return ApiResponse.fail("系統發生未預期錯誤，請聯繫管理員");
     }
 }
