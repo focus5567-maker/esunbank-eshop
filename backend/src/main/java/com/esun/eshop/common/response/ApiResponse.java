@@ -33,11 +33,6 @@ public class ApiResponse<T> {
         return new ApiResponse<>(true, "OK", data);
     }
 
-    /** 成功回應，可自訂訊息 */
-    public static <T> ApiResponse<T> success(String message, T data) {
-        return new ApiResponse<>(true, message, data);
-    }
-
     /** 失敗回應，data 為 null */
     public static <T> ApiResponse<T> fail(String message) {
         return new ApiResponse<>(false, message, null);

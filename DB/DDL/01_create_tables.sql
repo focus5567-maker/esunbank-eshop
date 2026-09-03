@@ -48,6 +48,3 @@ COMMENT ON TABLE order_detail IS '訂單明細';
 COMMENT ON COLUMN order_detail.order_item_sn IS '訂單明細流水號';
 COMMENT ON COLUMN order_detail.stand_price IS '單價（下單當下售價快照）';
 COMMENT ON COLUMN order_detail.item_price IS '單品項總價 = stand_price * quantity';
-
-CREATE INDEX idx_order_detail_order_id ON order_detail(order_id);
-CREATE INDEX idx_order_detail_product_id ON order_detail(product_id);
